@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define eps 0.001
+double f1(double x)
+{
+    return 3 * (1 / (2 * (x + 1)) + 1);
+}
+
+double f2(double x)
+{
+    return 2.5 * x - 9.5;
+}
+
+double f3(double x)
+{
+    return 5/x;
+}
+
+double root(double L, double R, double (*func1) (double), double (*func2) (double))
+{
+    double x;
+    int sign = 1;
+    while(R - L >= eps)
+    {
+        x = (L + R)/ 2;
+        if(sign * (func1(L) - func2(L)) > sign * (func1(R) - func2(R))) sign *= -1;
+        if ((sign * (func1(x) - func2(x))) > 0) R = x;
+        else L = x;
+    }
+    return L;
+}
+
+double integral(double x1, double x2, int n, double (*func) (double))
+{
+    double height = (x2 - x1) / n;
+    double sum = 0;
+    for(int i = 0; i < n; ++i)
+    {
+        double half = (func(x1 + i * height) + func(x1 + (i + 1) * height)) / 2;
+        sum += height * half;
+    }
+    return sum;
+}
+
+void order(double* x1, double* x2, double* x3)
+{
+    if(*x1 > *x2)
+    {
+        double tmp = *x2;
+        *x2 = *x1;
+        *x1 = tmp;
+    }
+    if (*x3 < *x1)
+    {
+        double tmp = *x3;
+        *x3 = *x2;
+        *x2 = *x1;
+        *x1 = tmp;
+    }
+    else if(*x3 < *x2)
+    {
+        double tmp = *x2;
+        *x2 = *x3;
+        *x3 = tmp;
+    }
+}
+
+//Sample
+double samplef1(double x)
+{
+    return (9 - (x - 3) * (x - 3));
+}
+
+double samplef2(double x)
+{
+    return (x - 3);
+}
+
+double samplef3(double x)
+{
+    return (3 - x);
+}
+
+int main(void)
+{
+    double root12 = root(0,6, samplef1, samplef2);
+    double root23 = root(0,6, samplef2, samplef3);
+    double root31 = root(0,6, samplef1, samplef3);
+    printf("%.3f\n", root12);
+    printf("%.3f\n", root23);
+    printf("%.3f\n", root31);
+    int n;
+    scanf("%d", &n);
+    double x1 = root12, x2 = root23, x3 = root31;
+    order(&x1, &x2, &x3);
+
+    double integral_one = integral(x1, x2, n, samplef1);
+    double integral_two = integral(x1, x2, n, samplef2);
+    double integral_three = integral(x1, x2, n, samplef3);
+    order(&integral_one, &integral_two, &integral_three);
+
+    double result = integral_three - integral_two;
+
+    integral_one = integral(x2, x3, n, samplef1);
+    integral_two = integral(x2, x3, n, samplef2);
+    integral_three = integral(x2, x3, n, samplef3);
+    order(&integral_one, &integral_two, &integral_three);
+
+    result += integral_three - integral_two;
+    printf("%.3f", result);
+    return 0;
+
+}
